@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='pandas_latex',
-    version='0.1dev',
+    version='0.1.dev0',
     license='GNU GPL v3',
     author='Paul Natsuo Kishimoto',
     author_email='mail@paul.kishimoto.name',
