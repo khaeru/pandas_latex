@@ -16,7 +16,7 @@ def expected(name):
 
 def test_basic():
     lines = pandas_latex.format(data)
-    assert ''.join(lines) == expected('basic')
+    assert '\n'.join(lines) == expected('basic')
 
 
 def test_header_cb():
@@ -25,9 +25,9 @@ def test_header_cb():
         return [pandas_latex.line(name, *map(lambda c: s % c, columns))]
 
     lines = pandas_latex.format(data, header=header_cb, coltype='lr')
-    assert ''.join(lines) == expected('header_cb')
+    assert '\n'.join(lines) == expected('header_cb')
 
 
 def test_coltype_cline():
     lines = pandas_latex.format(data, coltype='rcl', clines={2, 3})
-    assert ''.join(lines) == expected('coltype_cline')
+    assert '\n'.join(lines) == expected('coltype_cline')

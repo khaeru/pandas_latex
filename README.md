@@ -31,7 +31,7 @@ def header_cb(name, columns):
 
 lines = pandas_latex.format(data, header_cb, coltype='lcS')
 
-print(''.join(lines))
+print('\n'.join(lines))
 ```
 
 …gives a result like:
