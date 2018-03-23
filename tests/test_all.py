@@ -1,6 +1,8 @@
 from os.path import dirname, join
 import pandas as pd
 
+import pytest
+
 import pandas_latex
 
 data = pd.DataFrame([[0, 1], [2, 3]],
@@ -31,3 +33,10 @@ def test_header_cb():
 def test_coltype_cline():
     lines = pandas_latex.format(data, coltype='rcl', clines={2, 3})
     assert '\n'.join(lines) == expected('coltype_cline')
+
+
+def test_coltype_raises():
+    with pytest.raises(ValueError):
+        lines = pandas_latex.format(data, coltype=('a', 'b', 'toomany'))
+        # Must yield at least one item to trigger this exception
+        next(lines)

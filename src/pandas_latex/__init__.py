@@ -102,6 +102,10 @@ def format(df, header=None, row=None, preamble=[], coltype='lc', clines=[],
     # Use a length-2 string as (index, data) column type specificers
     if isinstance(coltype, str) and len(coltype) == 2:
         coltype = coltype[0] + n_cols * coltype[1]
+    elif isinstance(coltype, (list, tuple)):
+        if len(coltype) != n_cols:
+            raise ValueError("coltype '{}' has length {} != {} data columns"
+                             .format(coltype, len(coltype), n_cols))
 
     colspec = ''
     for n, ctype in enumerate(coltype):
