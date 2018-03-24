@@ -21,6 +21,17 @@ def test_basic():
     assert '\n'.join(lines) == expected('basic')
 
 
+def test_multiindex():
+    df = data.copy()
+
+    # Double-up the index on both axes
+    df.index = pd.MultiIndex.from_arrays([df.index, df.index])
+    df.columns = pd.MultiIndex.from_arrays([df.columns, df.columns])
+
+    lines = pandas_latex.format(df)
+    assert '\n'.join(lines) == expected('multiindex')
+
+
 def test_header_cb():
     def header_cb(name, columns):
         s = r'\rotatebox{90}{\ttfamily %s}'

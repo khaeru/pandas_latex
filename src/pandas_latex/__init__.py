@@ -6,7 +6,11 @@ __all__ = [
 
 def _escape(text):
     # TODO also handle &%$#{}~^\
-    return text.replace('_', '\_')
+    if isinstance(text, tuple):
+        # For instance, a pd.MultiIndex label
+        return tuple(map(_escape, text))
+    else:
+        return text.replace('_', '\_')
 
 
 def _callback(cb, default, **kwargs):
@@ -29,10 +33,15 @@ def _callback(cb, default, **kwargs):
 
 # Default callbacks
 def _default_header(name, columns):
+    # Handle non-string labels, e.g. MultiIndex
+    name = ', '.join(name) if isinstance(name, tuple) else name
+    if isinstance(columns[0], tuple):
+        columns = [', '.join(col) for col in columns]
     return [line(name, *columns)]
 
 
 def _default_row(name, cells):
+    name = ', '.join(name) if isinstance(name, tuple) else name
     return [line(name, *cells)]
 
 
@@ -119,8 +128,11 @@ def format(df, header=None, row=None, preamble=[], coltype='lc', clines=[],
     yield rule('mid')
 
     # Emit the rows
-    for rowlines in df.apply(_row, axis=1):
-        yield from rowlines
+    # NB df.apply() doesn't work here when df.index is a MultiIndex; the result
+    #    is a DataFrame instead of a Series, and the elements are strings, not
+    #    lists. This way also avoids storing the entire result.
+    for _, r in df.iterrows():
+        yield from _row(r)
 
     # Emit the lines
     yield rule('bottom')
