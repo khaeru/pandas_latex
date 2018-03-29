@@ -113,11 +113,12 @@ def format(df, header=None, row=None, preamble=[], coltype='lc', clines=set(),
     preamble = [preamble] if isinstance(preamble, str) else preamble
 
     # Things to escape (or not!)
+    escape = set(escape)
     if 'all' in escape:
         escape = {'_name', '_index', '_columns'} | set(df.columns)
     elif '_cells' in escape:
         escape |= set(df.columns)
-    escape -= no_escape
+    escape -= set(no_escape)
     esc_name = _escape if '_name' in escape else _noescape
     esc_index = _escape if '_index' in escape else _noescape
     esc_columns = _escape if '_columns' in escape else _noescape
