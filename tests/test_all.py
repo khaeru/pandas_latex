@@ -55,6 +55,6 @@ def test_coltype_cline():
 
 def test_coltype_raises():
     with pytest.raises(ValueError):
-        lines = pandas_latex.format(data, coltype=('a', 'b', 'toomany'))
+        lines = pandas_latex.format(data, coltype=('a', 'b', 'c', 'toomany'))
         # Must yield at least one item to trigger this exception
         next(lines)
