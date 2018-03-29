@@ -6,10 +6,10 @@ __all__ = [
     ]
 
 
-__escape_re = re.compile(r'(?<!\\)([#$%&_{}])')
+_escape_re = re.compile(r'(?<!\\)([#$%&_{}])')
 
 
-def __escape_repl(match):
+def _escape_repl(match):
     return r'\{}'.format(match.groups()[0])
 
 
@@ -23,7 +23,14 @@ def _escape(text):
         # For instance, a pd.MultiIndex label
         return tuple(map(_escape, text))
     else:
-        return __escape_re.sub(__escape_repl, text)
+        return _escape_re.sub(_escape_repl, str(text))
+
+
+def _noescape(text):
+    if isinstance(text, tuple):
+        return tuple(map(_noescape, text))
+    else:
+        return str(text)
 
 
 def _callback(cb, default, **kwargs):
@@ -63,8 +70,8 @@ def line(*entries):
     return ' & '.join(entries) + r' \\'
 
 
-def format(df, header=None, row=None, preamble=[], coltype='lc', clines=[],
-           booktabs=True, env='tabular'):
+def format(df, header=None, row=None, preamble=[], coltype='lc', clines=set(),
+           booktabs=True, env='tabular', escape={'all'}, no_escape=set()):
     """Format the pandas.DataFrame *df* as a LaTeX table.
 
     Returns an iterable of lines.
@@ -90,31 +97,42 @@ def format(df, header=None, row=None, preamble=[], coltype='lc', clines=[],
       package are added. If False, `\hline` is used.
     *env* (string) - the table environment to be used; default 'tabular'.
 
+    *escape*, *no_escape* (sets) - names of things to pass through _escape();
+      either column names or one of the special values below. The items
+      specified by *no_escape* are subtracted from those specified by *escape*.
+      - 'all' (*escape* only): shorthand for _name, _index, _columns, _cells
+      - '_name': *df*'s name attribute
+      - '_index': index labels
+      - '_columns': column labels
+      - '_cells': all data columns
+
     The user should take care to add appropriate `\\usepackage{…}` commands to
     the document preamble.
     """
     # Process arguments
     preamble = [preamble] if isinstance(preamble, str) else preamble
 
-    # Emit rules according to *booktabs*
-    def rule(which):
-        if booktabs:
-            assert which in ('top', 'mid', 'bottom')
-            return r'\{}rule'.format(which)
-        else:
-            return r'\hline'
+    # Things to escape (or not!)
+    if 'all' in escape:
+        escape = {'_name', '_index', '_columns'} | set(df.columns)
+    elif '_cells' in escape:
+        escape |= set(df.columns)
+    escape -= no_escape
+    esc_name = _escape if '_name' in escape else _noescape
+    esc_index = _escape if '_index' in escape else _noescape
+    esc_columns = _escape if '_columns' in escape else _noescape
 
     def _header():
-        # Escape header contents and then use the callback
-        df_name = _escape(getattr(df, 'name', ''))
-        df_cols = df.columns.to_series().apply(_escape)
+        # Maybe escape header contents and then use the callback
+        df_name = esc_name(getattr(df, 'name', ''))
+        df_cols = df.columns.to_series().apply(esc_columns)
         return _callback(header, _default_header,
                          name=df_name, columns=df_cols)
 
     def _row(df_row):
-        # Escape row contents and then use the callback
-        row_name = _escape(df_row.name)
-        cells = df_row.astype(str).apply(_escape)
+        # Maybe escape row name and then use the callback
+        row_name = esc_index(df_row.name)
+        cells = df_row.astype(str)
         return _callback(row, _default_row,
                          name=row_name, cells=cells)
 
@@ -133,12 +151,24 @@ def format(df, header=None, row=None, preamble=[], coltype='lc', clines=[],
     for n, ctype in enumerate(coltype):
         colspec += ('|' if n in clines else '') + ctype
 
+    # Emit rules according to *booktabs*
+    def rule(which):
+        if booktabs:
+            assert which in ('top', 'mid', 'bottom')
+            return r'\{}rule'.format(which)
+        else:
+            return r'\hline'
+
     # Emit the table header
     yield from preamble
     yield r'\begin{%s}{%s}' % (env, colspec)
     yield rule('top')
     yield from _header()
     yield rule('mid')
+
+    # Escape the data
+    for col in escape - {'_name', '_index', '_columns'}:
+        df[col] = df[col].apply(_escape)
 
     # Emit the rows
     # NB df.apply() doesn't work here when df.index is a MultiIndex; the result
