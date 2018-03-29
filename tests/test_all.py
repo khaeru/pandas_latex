@@ -16,6 +16,13 @@ def expected(name):
     return open(join(tests_dir, '{}.tex').format(name)).read()
 
 
+def test_escape():
+    assert (pandas_latex._escape('foo#bar$foo%bar&foo_bar') ==
+            r'foo\#bar\$foo\%bar\&foo\_bar')
+    assert pandas_latex._escape('foo___bar') == r'foo\_\_\_bar'
+    assert pandas_latex._escape('foo\_bar') == r'foo\_bar'
+
+
 def test_basic():
     lines = pandas_latex.format(data)
     assert '\n'.join(lines) == expected('basic')

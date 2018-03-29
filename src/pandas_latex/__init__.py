@@ -1,16 +1,29 @@
+import re
+
 __all__ = [
     'line',
     'format',
     ]
 
 
+__escape_re = re.compile(r'(?<!\\)([#$%&_{}])')
+
+
+def __escape_repl(match):
+    return r'\{}'.format(match.groups()[0])
+
+
 def _escape(text):
-    # TODO also handle &%$#{}~^\
+    """Escape special characters.
+
+    Any of # $ % & _ { } that is not already prefixed by a slash is escaped.
+    """
+    # TODO also handle ~^\
     if isinstance(text, tuple):
         # For instance, a pd.MultiIndex label
         return tuple(map(_escape, text))
     else:
-        return text.replace('_', '\_')
+        return __escape_re.sub(__escape_repl, text)
 
 
 def _callback(cb, default, **kwargs):
