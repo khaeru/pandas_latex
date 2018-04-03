@@ -1,3 +1,4 @@
+from itertools import tee
 import re
 
 __all__ = [
@@ -71,7 +72,8 @@ def line(*entries):
 
 
 def format(df, header=None, row=None, preamble=[], coltype='lc', clines=set(),
-           booktabs=True, env='tabular', escape={'all'}, no_escape=set()):
+           booktabs=True, env='tabular', escape={'all'}, no_escape=set(),
+           **kwargs):
     """Format the pandas.DataFrame *df* as a LaTeX table.
 
     Returns an iterable of lines.
@@ -163,9 +165,25 @@ def format(df, header=None, row=None, preamble=[], coltype='lc', clines=set(),
     # Emit the table header
     yield from preamble
     yield r'\begin{%s}{%s}' % (env, colspec)
+    if 'before_header' in kwargs:
+        yield kwargs['before_header']
+
+    if env == 'longtable':
+        header, repeat_header = tee(_header(), 2)
+    else:
+        header = _header()
     yield rule('top')
-    yield from _header()
+    yield from header
     yield rule('mid')
+
+    if env == 'longtable':
+        yield r'\endfirsthead'
+        yield rule('top')
+        yield from repeat_header
+        yield rule('mid')
+        yield r'\endhead'
+        yield rule('bottom')
+        yield r'\endfoot'
 
     # Escape the data
     for col in escape - {'_name', '_index', '_columns'}:
@@ -179,6 +197,7 @@ def format(df, header=None, row=None, preamble=[], coltype='lc', clines=set(),
         yield from _row(r)
 
     # Emit the lines
-    yield rule('bottom')
+    if env != 'longtable':
+        yield rule('bottom')
     yield r'\end{%s}' % env
     yield ''
