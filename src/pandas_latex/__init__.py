@@ -14,7 +14,7 @@ def _escape_repl(match):
     return r'\{}'.format(match.groups()[0])
 
 
-def _escape(text):
+def escape(text):
     """Escape special characters.
 
     Any of # $ % & _ { } that is not already prefixed by a slash is escaped.
@@ -22,7 +22,7 @@ def _escape(text):
     # TODO also handle ~^\
     if isinstance(text, tuple):
         # For instance, a pd.MultiIndex label
-        return tuple(map(_escape, text))
+        return tuple(map(escape, text))
     else:
         return _escape_re.sub(_escape_repl, str(text))
 
@@ -121,9 +121,9 @@ def format(df, header=None, row=None, preamble=[], coltype='lc', clines=set(),
     elif '_cells' in escape:
         escape |= set(df.columns)
     escape -= set(no_escape)
-    esc_name = _escape if '_name' in escape else _noescape
-    esc_index = _escape if '_index' in escape else _noescape
-    esc_columns = _escape if '_columns' in escape else _noescape
+    esc_name = escape if '_name' in escape else _noescape
+    esc_index = escape if '_index' in escape else _noescape
+    esc_columns = escape if '_columns' in escape else _noescape
 
     def _header():
         # Maybe escape header contents and then use the callback
@@ -187,7 +187,7 @@ def format(df, header=None, row=None, preamble=[], coltype='lc', clines=set(),
 
     # Escape the data
     for col in escape - {'_name', '_index', '_columns'}:
-        df[col] = df[col].apply(_escape)
+        df[col] = df[col].apply(escape)
 
     # Emit the rows
     # NB df.apply() doesn't work here when df.index is a MultiIndex; the result
