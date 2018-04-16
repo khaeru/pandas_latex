@@ -72,7 +72,7 @@ def line(*entries):
 
 
 def format(df, header=None, row=None, preamble=[], coltype='lc', clines=set(),
-           booktabs=True, env='tabular', escape={'all'}, no_escape=set(),
+           booktabs=True, env='tabular', escape_values={'all'}, no_escape=set(),
            **kwargs):
     """Format the pandas.DataFrame *df* as a LaTeX table.
 
@@ -99,10 +99,12 @@ def format(df, header=None, row=None, preamble=[], coltype='lc', clines=set(),
       package are added. If False, `\hline` is used.
     *env* (string) - the table environment to be used; default 'tabular'.
 
-    *escape*, *no_escape* (sets) - names of things to pass through _escape();
-      either column names or one of the special values below. The items
-      specified by *no_escape* are subtracted from those specified by *escape*.
-      - 'all' (*escape* only): shorthand for _name, _index, _columns, _cells
+    *escape_values*, *no_escape* (sets) - names of things to pass through
+      escape(); either column names or one of the special values below. The
+      items specified by *no_escape* are subtracted from those specified by
+      *escape_values*.
+      - 'all' (*escape_values* only): shorthand for _name, _index, _columns,
+        _cells
       - '_name': *df*'s name attribute
       - '_index': index labels
       - '_columns': column labels
@@ -115,15 +117,15 @@ def format(df, header=None, row=None, preamble=[], coltype='lc', clines=set(),
     preamble = [preamble] if isinstance(preamble, str) else preamble
 
     # Things to escape (or not!)
-    escape = set(escape)
-    if 'all' in escape:
-        escape = {'_name', '_index', '_columns'} | set(df.columns)
-    elif '_cells' in escape:
-        escape |= set(df.columns)
-    escape -= set(no_escape)
-    esc_name = escape if '_name' in escape else _noescape
-    esc_index = escape if '_index' in escape else _noescape
-    esc_columns = escape if '_columns' in escape else _noescape
+    escape_values = set(escape_values)
+    if 'all' in escape_values:
+        escape_values = {'_name', '_index', '_columns'} | set(df.columns)
+    elif '_cells' in escape_values:
+        escape_values |= set(df.columns)
+    escape_values -= set(no_escape)
+    esc_name = escape if '_name' in escape_values else _noescape
+    esc_index = escape if '_index' in escape_values else _noescape
+    esc_columns = escape if '_columns' in escape_values else _noescape
 
     def _header():
         # Maybe escape header contents and then use the callback
@@ -186,7 +188,7 @@ def format(df, header=None, row=None, preamble=[], coltype='lc', clines=set(),
         yield r'\endfoot'
 
     # Escape the data
-    for col in escape - {'_name', '_index', '_columns'}:
+    for col in escape_values - {'_name', '_index', '_columns'}:
         df[col] = df[col].apply(escape)
 
     # Emit the rows
