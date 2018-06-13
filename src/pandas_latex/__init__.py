@@ -232,7 +232,7 @@ class TableFormatter:
     def _header(self, df):
         """Format the header."""
         # Maybe escape header contents and then use the callback
-        df_name = self._escape(Escape.NAME, getattr(df, 'name', ''), df)
+        df_name = self._escape(Escape.NAME, df.index.name, df)
         df_cols = df.columns \
                     .to_series() \
                     .apply(partial(self._escape, Escape.COLUMNS))
