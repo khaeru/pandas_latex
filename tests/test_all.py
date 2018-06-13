@@ -1,31 +1,37 @@
-from os.path import dirname, join
-import pandas as pd
+from pathlib import Path
 
+import pandas as pd
 import pytest
 
-import pandas_latex
+import pandas_latex as pl
 
 data = pd.DataFrame([[0, 1], [2, 3]],
                     index=['foo', 'bar'],
                     columns=['col_one', 'coltwo'])
 
-tests_dir = dirname(__file__)
+tests_dir = Path(__file__).parent
 
 
-def expected(name):
-    return open(join(tests_dir, '{}.tex').format(name)).read()
+def assert_expected(name, lines):
+    """Assert that lines *name*.tex."""
+    expected = map(str.rstrip, open(tests_dir / f'{name}.tex').readlines())
+    for i, (exp, act) in enumerate(zip(expected, lines)):
+        assert exp == act, 'at line %d' % i
 
 
 def test_escape():
-    assert (pandas_latex._escape('foo#bar$foo%bar&foo_bar') ==
+    assert (pl.escape('foo#bar$foo%bar&foo_bar') ==
             r'foo\#bar\$foo\%bar\&foo\_bar')
-    assert pandas_latex._escape('foo___bar') == r'foo\_\_\_bar'
-    assert pandas_latex._escape('foo\_bar') == r'foo\_bar'
+    assert pl.escape('foo___bar') == r'foo\_\_\_bar'
+    assert pl.escape('foo\_bar') == r'foo\_bar'
 
 
 def test_basic():
-    lines = pandas_latex.format(data)
-    assert '\n'.join(lines) == expected('basic')
+    formatter = pl.TableFormatter()
+    assert_expected('basic', formatter.format(data))
+
+    formatter.booktabs = False
+    assert_expected('booktabs_false', formatter.format(data))
 
 
 def test_multiindex():
@@ -35,26 +41,56 @@ def test_multiindex():
     df.index = pd.MultiIndex.from_arrays([df.index, df.index])
     df.columns = pd.MultiIndex.from_arrays([df.columns, df.columns])
 
-    lines = pandas_latex.format(df)
-    assert '\n'.join(lines) == expected('multiindex')
+    assert_expected('multiindex', pl.format(df))
+
+    assert_expected('multiindex_noescape', pl.format(df, escape=['coltwo']))
 
 
 def test_header_cb():
     def header_cb(name, columns):
         s = r'\rotatebox{90}{\ttfamily %s}'
-        return [pandas_latex.line(name, *map(lambda c: s % c, columns))]
+        return [pl.line(name, *map(lambda c: s % c, columns))]
 
-    lines = pandas_latex.format(data, header=header_cb, coltype='lr')
-    assert '\n'.join(lines) == expected('header_cb')
+    lines = pl.format(data, header=header_cb, coltype='lr')
+    assert_expected('header_cb', lines)
 
 
 def test_coltype_cline():
-    lines = pandas_latex.format(data, coltype='rcl', clines={2, 3})
-    assert '\n'.join(lines) == expected('coltype_cline')
+    lines = pl.format(data, coltype='rcl', clines={2, 3})
+    assert_expected('coltype_cline', lines)
 
 
 def test_coltype_raises():
     with pytest.raises(ValueError):
-        lines = pandas_latex.format(data, coltype=('a', 'b', 'c', 'toomany'))
+        lines = pl.format(data, coltype=('a', 'b', 'c', 'toomany'))
         # Must yield at least one item to trigger this exception
         next(lines)
+
+
+def test_noescape():
+    assert_expected('noescape', pl.format(data, escape=pl.ALL ^ pl.COLUMNS))
+
+    # No effect because test data don't contain escapable contents
+    assert_expected('basic', pl.format(data, escape=[pl.ALL, 'coltwo']))
+
+    with pytest.raises(ValueError):
+        assert_expected('basic', pl.format(data, escape=[pl.ALL, 'colthree']))
+
+
+def test_env_longtable():
+    lines = pl.format(data, env='longtable',
+                      before_repeat_header='% before_repeat_header hook')
+    assert_expected('longtable', lines)
+
+
+def test_write(tmpdir):
+    # Using the class method
+    formatter = pl.TableFormatter()
+    formatter.write(tmpdir / 'test.tex', data)
+    lines = map(str.rstrip, open(tmpdir / 'test.tex').readlines())
+    assert_expected('basic', lines)
+
+    # Using the utility method
+    pl.write(tmpdir / 'test2.tex', data)
+    lines = map(str.rstrip, open(tmpdir / 'test2.tex').readlines())
+    assert_expected('basic', lines)
