@@ -257,6 +257,20 @@ class TableFormatter:
         else:
             return r'\hline'
 
+    def hook(self, name):
+        """Decorate a method as one of the callbacks.
+
+        Usage:
+
+        >>> tf = TableFormatter()
+        >>> @tf.hook('header')
+        >>> def _(name, columns):
+        >>>     return …
+        """
+        def decorator(fn):
+            setattr(self, name, fn)
+        return decorator
+
     def format(self, df):
         """Generate lines for a LaTeX representation of *df*."""
         yield from self._optional_lines('preamble')
