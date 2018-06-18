@@ -9,6 +9,7 @@ I know—there are a lot of these:
   - [DataFrame.to_latex()](http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.to_latex.html) in pandas itself.
   - [tabulate](https://bitbucket.org/astanin/python-tabulate)
   - [pytablewriter](http://pytablewriter.readthedocs.io)
+  - [PyLaTeX](https://jeltef.github.io/PyLaTeX/current/) has a [`Tabular`](https://jeltef.github.io/PyLaTeX/current/pylatex/pylatex.table.html) class
 - Others (with latest commit date):
   - [PyLaTeXtables](https://github.com/lahwaacz/PyLaTeXtables) (2018-03-18)
   - [pandas_latex](https://github.com/kevinali1/pandas_latex) (2016-08-15)
