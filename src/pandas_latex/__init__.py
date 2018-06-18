@@ -14,6 +14,7 @@ __all__ = [
 
 class Escape(Flag):
     """Flag for items to escape. See TableFormatter documentation."""
+    NONE = 0
     NAME = auto()
     COLUMNS = auto()
     INDEX = auto()
