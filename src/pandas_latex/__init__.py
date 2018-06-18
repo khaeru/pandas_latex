@@ -165,14 +165,13 @@ class TableFormatter:
 
         coltype = self.coltype
 
-        if isinstance(coltype, str) and len(coltype) == 2:
+        if len(coltype) == 2:
             # Use a length-2 string as (index, data) column type specifiers
             coltype = coltype[0] + n_cols * coltype[1]
-        elif isinstance(coltype, (list, tuple)):
-            # Use a sequence as explicit coltypes
-            if len(coltype) != n_cols + 1:
-                msg = "coltype '{}' has length {} != {} data columns + index"
-                raise ValueError(msg.format(coltype, len(coltype), n_cols))
+        elif len(coltype) != n_cols + 1:
+            # Use a sequence as explicit coltypes; check the length
+            msg = "coltype '{}' has length {} != {} data columns + index"
+            raise ValueError(msg.format(coltype, len(coltype), n_cols))
 
         # Prepare the spec
         result = ''
