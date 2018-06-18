@@ -74,6 +74,16 @@ def _escape_repl(match):
     return r'\{}'.format(match.groups()[0])
 
 
+class _StatefulCallback:
+    """Simple decorator to preserve function state."""
+    def __init__(self, fn, state):
+        self._fn = fn
+        self.__dict__.update(state)
+
+    def __call__(self, *args, **kwargs):
+        return self._fn(*args, **kwargs, state=self)
+
+
 class TableFormatter:
     """Format pandas.DataFrames as LaTeX tables.
 
@@ -258,18 +268,27 @@ class TableFormatter:
         else:
             return r'\hline'
 
-    def hook(self, name):
+    def hook(self, name, **kwargs):
         """Decorate a method as one of the callbacks.
 
         Usage:
 
         >>> tf = TableFormatter()
         >>> @tf.hook('header')
-        >>> def _(name, columns):
+        >>> def _h(name, columns):
         >>>     return …
+
+        or with a state:
+
+        >>> tf.hook('row', flag=True)
+        >>> def _r(name, cells, state):
+        >>>     result = ['\hline'] if state.flag else []
+        >>>     state.flag = False
+        >>>     return result + [line(name, *cells)]
         """
         def decorator(fn):
-            setattr(self, name, fn)
+            cb = _StatefulCallback(fn, kwargs) if len(kwargs) else fn
+            setattr(self, name, cb)
         return decorator
 
     def format(self, df):

@@ -55,6 +55,17 @@ def test_header_cb():
     assert_expected('header_cb', lines)
 
 
+def test_stateful_cb():
+    tf = pl.TableFormatter()
+
+    @tf.hook('row', rownum=0)
+    def _(name, cells, state):
+        state.rownum += 1
+        return pl.line('%d %s' % (state.rownum, name), *cells)
+
+    assert_expected('stateful_cb', tf.format(data))
+
+
 def test_coltype_cline():
     lines = pl.format(data, coltype='rcl', clines={2, 3})
     assert_expected('coltype_cline', lines)
