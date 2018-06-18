@@ -233,11 +233,12 @@ class TableFormatter:
     def _header(self, df):
         """Format the header."""
         # Maybe escape header contents and then use the callback
-        df_name = self._escape(Escape.NAME, df.index.name, df)
-        df_cols = df.columns \
+        name = df.index.name if df.index.name else ''
+        name = self._escape(Escape.NAME, name, df)
+        columns = df.columns \
                     .to_series() \
                     .apply(partial(self._escape, Escape.COLUMNS))
-        return _lines(self.header(name=df_name, columns=df_cols))
+        return _lines(self.header(name=name, columns=columns))
 
     def _optional_lines(self, group):
         """Return a group of optional lines."""
