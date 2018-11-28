@@ -13,6 +13,6 @@ setup(
     package_dir={'': 'src'},
     setup_requires=['pytest-runner'],
     extras_require={
-        'test': ['pytest', 'pytest-cov'],
+        'test': ['pandas', 'pytest', 'pytest-cov'],
         },
     )

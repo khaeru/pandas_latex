@@ -10,3 +10,6 @@ cache: pip
 install: pip install .[test]
 
 script: pytest
+
+notifications:
+  email: false
