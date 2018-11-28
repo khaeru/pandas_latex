@@ -1,4 +1,7 @@
 # (yet another) pandas.DataFrame → LaTeX table formatter
+[![Build Status](https://travis-ci.org/khaeru/pandas_latex.svg?branch=master)](https://travis-ci.org/khaeru/pandas_latex)
+[![codecov](https://codecov.io/gh/khaeru/pandas_latex/branch/master/graph/badge.svg)](https://codecov.io/gh/khaeru/pandas_latex)
+
 © 2018 Paul Natsuo Kishimoto (<mail@paul.kishimoto.name>)
 
 Provided under the GNU General Public License, version 3.0
@@ -56,6 +59,4 @@ print('\n'.join(lines))
 \end{tabular}
 ```
 
-See [the source code](https://github.com/khaeru/pandas_latex/blob/master/src/pandas_latex/__init__.py) for more documentation.
-
-Run tests using `python3 setup.py test`
+See [the source code](https://github.com/khaeru/pandas_latex/blob/master/src/pandas_latex/__init__.py) for more documentation. Run tests using `python3 setup.py test`.
