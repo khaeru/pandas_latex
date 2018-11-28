@@ -7,9 +7,15 @@ python:
 
 cache: pip
 
-install: pip install .[test]
+install:
+  - pip install .[test]
+  - pip install codecov
 
 script: pytest
+
+after_success:
+  - coverage combine
+  - codecov
 
 notifications:
   email: false
