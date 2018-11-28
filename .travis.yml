@@ -1,1 +1,10 @@
 language: python
+
+python:
+  - "3.7"
+
+cache: pip
+
+install: pip install .
+
+script: pytest
