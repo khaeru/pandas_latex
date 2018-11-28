@@ -7,6 +7,6 @@ python:
 
 cache: pip
 
-install: pip install .
+install: pip install .[test]
 
 script: pytest
