@@ -1,3 +1,9 @@
+"""(yet another) pandas.DataFrame → LaTeX table formatter
+
+See the TableFormatter class for documentation, as well as the utility methods
+listed in __all__.
+
+"""
 from enum import Flag, auto
 from functools import partial
 from itertools import tee
